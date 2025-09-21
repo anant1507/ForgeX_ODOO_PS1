@@ -12,3 +12,4 @@ ForgeX aims to allow businesses to create, track and manage there end to end pro
 PPT Link for FORGEX: https://www.canva.com/design/DAGziYw14UU/-S5MaZLTbW_2NIFOhxv-ww/edit?utm_content=DAGziYw14UU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 Video Link for ForgeX: 
+https://drive.google.com/file/d/1_NYpqDmqKhhqHsW3liBT63KWvNK8JzjP/view?usp=drivesdk
