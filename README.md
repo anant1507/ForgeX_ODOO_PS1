@@ -9,6 +9,6 @@ Our Website ForgeX is a solution for the current system that faces several chall
 
 ForgeX aims to allow businesses to create, track and manage there end to end production process digitally.
 
-PPT Link for FORGEX: [https://www.canva.com/design/DAGziYw14UU/-S5MaZLTbW_2NIFOhxv-ww/edit?utm_content=DAGziYw14UU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton](https://www.canva.com/design/DAGziYw14UU/-S5MaZLTbW_2NIFOhxv-ww/edit?utm_content=DAGziYw14UU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+PPT Link for FORGEX: https://www.canva.com/design/DAGziYw14UU/-S5MaZLTbW_2NIFOhxv-ww/edit?utm_content=DAGziYw14UU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 Video Link for ForgeX: 
