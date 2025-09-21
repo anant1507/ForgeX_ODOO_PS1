@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="mb-4">My Work Orders</h1>
+<div class="card">
+    <div class="card-body">
+        <p class="text-muted">Track the real-time progress of your orders as they move through our production line.</p>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Finished Product</th>
+                        <th>Operation</th>
+                        <th>Work Center</th>
+                        <th>Expected Duration (Hrs)</th>
+                        <th>Real Duration (Hrs)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wo in work_orders %}
+                    <tr>
+                        <td>
+                            <strong>{{ wo.manufacturing_order.product.name }}</strong>
+                            <br>
+                            <small class="text-muted">For Order #{{ wo.manufacturing_order.customer_order.id }}</small>
+                        </td>
+                        <td>{{ wo.operation }}</td>
+                        <td>{{ wo.work_center.name if wo.work_center else 'Unassigned' }}</td>
+                        <td>{{ wo.expected_duration or 'N/A' }}</td>
+                        <td>{{ wo.real_duration or '...' }}</td>
+                        <td>
+                            {% set status_info = {'color': 'secondary', 'icon': 'hourglass-split'} %}
+                            {% if wo.customer_status == 'Completed' %}
+                                {% set status_info = {'color': 'success', 'icon': 'check-circle-fill'} %}
+                            {% elif wo.customer_status == 'In Progress' %}
+                                {% set status_info = {'color': 'primary', 'icon': 'gear-fill'} %}
+                            {% elif wo.customer_status == 'Delayed' %}
+                                {% set status_info = {'color': 'danger', 'icon': 'exclamation-triangle-fill'} %}
+                            {% endif %}
+                            <span class="badge bg-{{ status_info.color }}">
+                                <i class="bi bi-{{ status_info.icon }} me-1"></i>
+                                {{ wo.customer_status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">You have no active work orders in production.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="mb-0">My Order History</h1>
+    
+    <div class="d-flex align-items-center gap-2">
+        <div class="col-md-auto">
+            <select id="orderStatusFilter" class="form-select">
+                <option value="all" selected>Filter by Status (All)</option>
+                <option value="Pending">Pending</option>
+                <option value="Pending Quote">Pending Quote</option>
+                <option value="In Production">In Production</option>
+                <option value="Shipped">Shipped</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <a href="{{ url_for('export_report', report_name='customer_orders', file_format='xlsx') }}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel</a>
+            <a href="{{ url_for('export_report', report_name='customer_orders', file_format='pdf') }}" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="myOrdersTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Date Placed</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr data-status="{{ order.status }}">
+                        <td>#{{ order.id }}</td>
+                        <td>
+                            {{ order.product_name }}
+                            {% if order.is_custom %}
+                                <span class="badge bg-secondary">Custom</span>
+                                <p class="small text-muted mb-0 mt-1"><em>{{ order.description|truncate(80) }}</em></p>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.quantity }}</td>
+                        <td>
+                            {% set status_color = 'info' %}
+                            {% if order.status == 'Pending' or order.status == 'Pending Quote' %}
+                                {% set status_color = 'warning' %}
+                            {% elif order.status == 'In Production' %}
+                                {% set status_color = 'primary' %}
+                            {% elif order.status == 'Shipped' %}
+                                {% set status_color = 'success' %}
+                            {% endif %}
+                            <span class="badge bg-{{ status_color }}">{{ order.status }}</span>
+                        </td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if order.status == 'Pending' or order.status == 'Pending Quote' %}
+                            <a href="{{ url_for('edit_order', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{{ url_for('delete_order', order_id=order.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</a>
+                            {% else %}
+                            <span class="text-muted fst-italic">Locked</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">You haven't placed any orders yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

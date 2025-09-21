@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="mb-4">Manage Customer Orders</h1>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Product Details</th>
+                        <th>Qty</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.customer.name }} ({{ order.customer.username }})</td>
+                        <td>
+                            <strong>{{ order.product_name }}</strong>
+                            {% if order.is_custom %}
+                                <span class="badge bg-secondary">Custom</span>
+                                <p class="small text-muted mb-1 mt-1"><em>{{ order.description }}</em></p>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.quantity }}</td>
+                        <td>
+                             <span class="badge 
+                                {% if order.status == 'Shipped' %}bg-success
+                                {% elif order.status == 'In Production' %}bg-primary
+                                {% elif order.status == 'Pending' or order.status == 'Pending Quote' %}bg-warning text-dark
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if not order.manufacturing_order_id %}
+                            <form action="{{ url_for('create_mo_from_co', order_id=order.id) }}" method="post">
+                                <div class="input-group input-group-sm">
+                                    <select name="product_id" class="form-select">
+                                        <option value="" selected>-- Select Product to Make --</option>
+                                        {% for p in products %}
+                                        <option value="{{ p.id }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-primary" type="submit">Create MO</button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <a href="{{ url_for('manufacturing_orders') }}">MO-{{ order.manufacturing_order_id }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No customer orders found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

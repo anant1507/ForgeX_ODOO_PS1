@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="mb-4">Search Results for "<span class="text-primary">{{ query }}</span>"</h1>
+
+{% if products %}
+    <p class="text-muted">Found {{ products|length }} product(s) matching your search.</p>
+    <div class="list-group">
+        {% for product in products %}
+        <a href="{{ url_for('products_customer') }}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ product.name }}</h5>
+                <small>SKU: {{ product.sku }}</small>
+            </div>
+            <p class="mb-1">Click to view on the manufacturing order page.</p>
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <h5 class="card-title">No Results Found</h5>
+            <p class="card-text">We couldn't find any products matching your search term.</p>
+            <p class="card-text">
+                Try searching for a page name like
+                <span class="badge bg-secondary">orders</span>,
+                <span class="badge bg-secondary">work orders</span>, or
+                <span class="badge bg-secondary">profile</span>.
+            </p>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}

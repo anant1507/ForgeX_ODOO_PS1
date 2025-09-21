@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="mb-4">Manager Analytics Dashboard</h1>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-2"></i>Production Throughput</span>
+                <div class="w-50">
+                    <select id="productFilter" class="form-select form-select-sm">
+                        <option value="all" selected>Filter by Product (All)</option>
+                        {% for dataset in analytics_data.throughput.datasets %}
+                        <option value="{{ dataset.label }}">{{ dataset.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text small text-muted">Work orders completed over the last 7 days.</p>
+                <div style="height: 250px;">
+                    <canvas id="throughputChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-pie-chart-fill me-2"></i>On-Time vs. Delayed Orders</div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="height: 250px;">
+                {% if analytics_data.delays.on_time > 0 or analytics_data.delays.delayed > 0 %}
+                <canvas id="delayChart"></canvas>
+                {% else %}
+                <p class="text-muted">No completed order data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-activity me-2"></i>Work Center Utilization (Last 7 Days)</div>
+            <div class="card-body">
+                <p class="card-text small text-muted">Percentage of time each work center has been active, assuming an 8-hour workday.</p>
+                <div style="height: 250px;">
+                    <canvas id="utilizationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Recent Pending Customer Orders</h4>
+        <a href="{{ url_for('customer_orders_manager') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_pending_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.customer.name }}</td>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No pending customer orders.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const analyticsData = JSON.parse('{{ analytics_data | tojson | safe }}');
+    
+    // Store original datasets for filtering
+    const originalThroughputDatasets = analyticsData.throughput.datasets;
+
+    // 1. Throughput Chart (Line Chart)
+    const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+    const throughputChart = new Chart(throughputCtx, {
+        type: 'line',
+        data: {
+            labels: analyticsData.throughput.labels,
+            datasets: originalThroughputDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    // Filter functionality for Throughput Chart
+    document.getElementById('productFilter').addEventListener('change', function() {
+        const selectedProduct = this.value;
+        if (selectedProduct === 'all') {
+            throughputChart.data.datasets = originalThroughputDatasets;
+        } else {
+            throughputChart.data.datasets = originalThroughputDatasets.filter(dataset => dataset.label === selectedProduct);
+        }
+        throughputChart.update();
+    });
+
+    // 2. Delay Chart (Doughnut Chart)
+    if (analyticsData.delays.on_time > 0 || analyticsData.delays.delayed > 0) {
+        const delayCtx = document.getElementById('delayChart').getContext('2d');
+        new Chart(delayCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['On-Time', 'Delayed'],
+                datasets: [{
+                    data: [analyticsData.delays.on_time, analyticsData.delays.delayed],
+                    backgroundColor: ['rgba(25, 135, 84, 0.7)', 'rgba(220, 53, 69, 0.7)'],
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // 3. Utilization Chart (Horizontal Bar Chart)
+    const utilizationCtx = document.getElementById('utilizationChart').getContext('2d');
+    new Chart(utilizationCtx, {
+        type: 'bar',
+        data: {
+            labels: analyticsData.utilization.labels,
+            datasets: [{
+                label: 'Utilization %',
+                data: analyticsData.utilization.data,
+                backgroundColor: 'rgba(255, 193, 7, 0.6)'
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true, max: 100, ticks: { callback: (v) => v + "%" } } }
+        }
+    });
+});
+</script>
+{% endblock %}

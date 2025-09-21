@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="p-4 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-3">
+        <h1 class="display-6 fw-bold">Welcome, {{ session.username }}!</h1>
+        <p class="col-md-8 fs-5">Here is a live look at your production analytics.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-2"></i>Your Order Throughput</span>
+                <div class="w-50">
+                    <select id="productFilter" class="form-select form-select-sm">
+                        <option value="all" selected>Filter by Product (All)</option>
+                        {% for dataset in analytics_data.throughput.datasets %}
+                        <option value="{{ dataset.label }}">{{ dataset.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text small text-muted">Parts of your orders completed over the last 7 days.</p>
+                <div style="height: 250px;">
+                    <canvas id="customerThroughputChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-pie-chart-fill me-2"></i>Your On-Time Order Status</div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="height: 250px;">
+                 {% if analytics_data.delays.on_time > 0 or analytics_data.delays.delayed > 0 %}
+                <canvas id="customerDelayChart"></canvas>
+                {% else %}
+                <p class="text-muted">No completed order data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Your Recent Orders</h4>
+        <a href="{{ url_for('my_orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td><span class="badge bg-info text-dark">{{ order.status }}</span></td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">You have no recent orders.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const analyticsData = JSON.parse('{{ analytics_data | tojson | safe }}');
+
+    // Store original datasets for filtering
+    const originalThroughputDatasets = analyticsData.throughput.datasets;
+    
+    // 1. Throughput Chart (Line Chart)
+    const throughputCtx = document.getElementById('customerThroughputChart').getContext('2d');
+    const throughputChart = new Chart(throughputCtx, {
+        type: 'line',
+        data: {
+            labels: analyticsData.throughput.labels,
+            datasets: originalThroughputDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    // Filter functionality for Throughput Chart
+    document.getElementById('productFilter').addEventListener('change', function() {
+        const selectedProduct = this.value;
+        if (selectedProduct === 'all') {
+            throughputChart.data.datasets = originalThroughputDatasets;
+        } else {
+            throughputChart.data.datasets = originalThroughputDatasets.filter(dataset => dataset.label === selectedProduct);
+        }
+        throughputChart.update();
+    });
+    
+    // 2. Delay Chart (Pie Chart)
+    if (analyticsData.delays.on_time > 0 || analyticsData.delays.delayed > 0) {
+        const delayCtx = document.getElementById('customerDelayChart').getContext('2d');
+        new Chart(delayCtx, {
+            type: 'pie',
+            data: {
+                labels: ['On-Time', 'Delayed'],
+                datasets: [{
+                    data: [analyticsData.delays.on_time, analyticsData.delays.delayed],
+                    backgroundColor: ['rgba(25, 135, 84, 0.7)', 'rgba(255, 193, 7, 0.7)']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+});
+</script>
+{% endblock %}

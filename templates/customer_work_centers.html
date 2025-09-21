@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Our Work Centers</h1>
+</div>
+<div class="card">
+    <div class="card-body">
+        <p class="text-muted">An overview of our production facilities and their operational costs.</p>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Work Center Name</th>
+                        <th>Location</th>
+                        <th class="text-end">Cost per Hour</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wc in work_centers %}
+                    <tr>
+                        <td><i class="bi bi-cpu me-2"></i>{{ wc.name }}</td>
+                        <td><i class="bi bi-geo-alt me-2"></i>{{ wc.location }}</td>
+                        <td class="text-end">₹{{ "%.2f"|format(wc.hourly_cost) if wc.hourly_cost else 'N/A' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">Information on work centers is not available at the moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
